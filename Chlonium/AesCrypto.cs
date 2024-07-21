@@ -36,7 +36,7 @@ namespace Chlonium
             string localState = File.ReadAllText(localStatePath);
 
             // Read encrypted Masterkey
-            Regex r = new Regex("encrypted_key\":\"([a-z0-9+\\/=]+)\"", RegexOptions.IgnoreCase);
+            Regex r = new Regex("\"encrypted_key\":\"([-A-Za-z0-9+\\/]*={0,3})\"", RegexOptions.IgnoreCase);
 
             if (!r.IsMatch(localState))
             {
