@@ -210,7 +210,7 @@ namespace ChloniumUI
                         // re-encrypt all items
                         foreach (Cookie c in items)
                         {
-                            c.encrypted_value = crypto.Encrypt(c.decrypted_value);
+                            c.cookieValues["encrypted_value"] = crypto.Encrypt(c.decrypted_value);
                         }
                         count = items.Count();
                         importer.ImportCookies(items);
@@ -404,6 +404,7 @@ namespace ChloniumUI
                      "@encrypted_value, @samesite, @source_scheme, @source_port, @is_same_party)", con);
                 }
 
+                /*
                 cmd.Parameters.AddWithValue("@creation_utc", c.creation_utc);
                 cmd.Parameters.AddWithValue("@host_key", c.host_key);
                 cmd.Parameters.AddWithValue("@name", c.name);
@@ -422,6 +423,7 @@ namespace ChloniumUI
                 cmd.Parameters.AddWithValue("@source_scheme", c.source_scheme);
                 cmd.Parameters.AddWithValue("@source_port", c.source_port);
                 cmd.Parameters.AddWithValue("@is_same_party", c.is_same_party);
+                */
 
                 try
                 {

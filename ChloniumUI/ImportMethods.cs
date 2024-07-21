@@ -70,62 +70,20 @@ namespace ChloniumUI
                 SQLiteCommand cmd = new SQLiteCommand("DELETE FROM cookies;", con);
                 cmd.ExecuteNonQuery();
 
-                cmd = con.CreateCommand();
-                cmd.CommandText = string.Format("PRAGMA table_info(cookies);");
-                var reader = cmd.ExecuteReader();
-                bool hasTopFrameSiteKey = false;
-                int nameIndex = reader.GetOrdinal("Name");
-                while (reader.Read())
-                {
-                    if (reader.GetString(nameIndex).Equals("top_frame_site_key"))
-                    {
-                        hasTopFrameSiteKey = true;
-                    }
-                }
-
                 int exceptionsCount = 0;
 
                 foreach (Cookie c in items)
                 {
-                    if (hasTopFrameSiteKey)
-                    {
-                        cmd = new SQLiteCommand("INSERT INTO cookies (creation_utc, top_frame_site_key, host_key, name, value, " +
-                         "path, expires_utc, is_secure, is_httponly, last_access_utc, last_update_utc, has_expires, is_persistent, " +
-                         "priority, encrypted_value, samesite, source_scheme, source_port, is_same_party) VALUES" +
-                         " (@creation_utc, @top_frame_site_key, @host_key, @name, @value, @path, @expires_utc, @is_secure," +
-                         "@is_httponly, @last_access_utc, @last_update_utc, @has_expires, @is_persistent, @priority, " +
-                         "@encrypted_value, @samesite, @source_scheme, @source_port, @is_same_party)", con);
-                        cmd.Parameters.AddWithValue("@top_frame_site_key", "");
-                    }
-                    else
-                    {
-                        cmd = new SQLiteCommand("INSERT INTO cookies (creation_utc, host_key, name, value, " +
-                         "path, expires_utc, is_secure, is_httponly, last_access_utc, last_update_utc, has_expires, is_persistent, " +
-                         "priority, encrypted_value, samesite, source_scheme, source_port, is_same_party) VALUES" +
-                         " (@creation_utc, @host_key, @name, @value, @path, @expires_utc, @is_secure," +
-                         "@is_httponly, @last_access_utc, @last_update_utc, @has_expires, @is_persistent, @priority, " +
-                         "@encrypted_value, @samesite, @source_scheme, @source_port, @is_same_party)", con);
-                    }
+                    var columns = c.cookieValues.Keys.Aggregate("", (cur, next) => $"{cur}, {next}").Substring(1);
+                    var values = c.cookieValues.Keys.Aggregate("", (cur, next) => $"{cur}, @{next}").Substring(1);
 
-                    cmd.Parameters.AddWithValue("@creation_utc", c.creation_utc);
-                    cmd.Parameters.AddWithValue("@host_key", c.host_key);
-                    cmd.Parameters.AddWithValue("@name", c.name);
-                    cmd.Parameters.AddWithValue("@value", c.value);
-                    cmd.Parameters.AddWithValue("@path", c.path);
-                    cmd.Parameters.AddWithValue("@expires_utc", c.expires_utc);
-                    cmd.Parameters.AddWithValue("@is_secure", c.is_secure);
-                    cmd.Parameters.AddWithValue("@is_httponly", c.is_httponly);
-                    cmd.Parameters.AddWithValue("@last_access_utc", c.last_access_utc);
-                    cmd.Parameters.AddWithValue("@last_update_utc", c.last_update_utc);
-                    cmd.Parameters.AddWithValue("@has_expires", c.has_expires);
-                    cmd.Parameters.AddWithValue("@is_persistent", c.is_persistent);
-                    cmd.Parameters.AddWithValue("@priority", c.priority);
-                    cmd.Parameters.AddWithValue("@encrypted_value", c.encrypted_value);
-                    cmd.Parameters.AddWithValue("@samesite", c.samesite);
-                    cmd.Parameters.AddWithValue("@source_scheme", c.source_scheme);
-                    cmd.Parameters.AddWithValue("@source_port", c.source_port);
-                    cmd.Parameters.AddWithValue("@is_same_party", c.is_same_party);
+                    cmd = new SQLiteCommand($"INSERT INTO cookies ({columns}) VALUES" +
+                        $" ({values})", con);
 
+                    foreach (var pair in c.cookieValues) {
+                        cmd.Parameters.AddWithValue($"@{pair.Key}", pair.Value);
+                    }                      
+                                 
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -252,7 +210,7 @@ namespace ChloniumUI
                 // If you want to restore old cookies, you'll need to restore the Local State backup too
 
                 string localState = File.ReadAllText(Browser.LocalState);
-                Regex r = new Regex("encrypted_key\":\"([a-z0-9+\\/=]+)\"", RegexOptions.IgnoreCase);
+                Regex r = new Regex("\"encrypted_key\":\"([-A-Za-z0-9+\\/]*={0,3})\"", RegexOptions.IgnoreCase);
 
                 if (!r.IsMatch(localState))
                 {

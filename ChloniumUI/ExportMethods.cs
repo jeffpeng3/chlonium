@@ -17,10 +17,7 @@ namespace ChloniumUI
 
             // open the Cookie db
             string cs = string.Format("Data Source={0};", inputFile);
-            string stm = "SELECT creation_utc, host_key, name, value, " +
-                "path, expires_utc, is_secure, is_httponly, last_access_utc, last_update_utc," +
-                "has_expires, is_persistent, priority, encrypted_value, " +
-                "samesite, source_scheme, source_port, is_same_party FROM cookies ORDER BY host_key;";
+            string stm = "SELECT * FROM cookies ORDER BY host_key;";
             SQLiteConnection con = new SQLiteConnection(cs);
             con.Open();
 
@@ -79,28 +76,13 @@ namespace ChloniumUI
                         continue;
                     }
 
-                    Cookie cookie = new Cookie
-                    {
-                        creation_utc = reader.GetInt64(0),
-                        host_key = reader.GetString(1),
-                        name = reader.GetString(2),
-                        value = reader.GetString(3),
-                        path = reader.GetString(4),
-                        expires_utc = reader.GetInt64(5),
-                        is_secure = reader.GetBoolean(6),
-                        is_httponly = reader.GetBoolean(7),
-                        last_access_utc = reader.GetInt64(8),
-                        last_update_utc = reader.GetInt64(9),
-                        has_expires = reader.GetBoolean(10),
-                        is_persistent = reader.GetBoolean(11),
-                        priority = reader.GetInt16(12),
-                        encrypted_value = encrypted_value,
-                        samesite = reader.GetBoolean(14),
-                        source_scheme = reader.GetInt16(15),
-                        source_port = reader.GetInt16(16),
-                        is_same_party = reader.GetInt16(17),
-                        decrypted_value = decrypted_value
-                    };
+                    Cookie cookie = new Cookie();
+                    cookie.decrypted_value = decrypted_value;
+
+                    for(int idx=0; idx<reader.FieldCount; ++idx) {
+                        cookie.cookieValues[reader.GetOriginalName(idx)] = reader[idx];
+                    }      
+                    
                     items.Add(cookie);
                 }
             }
