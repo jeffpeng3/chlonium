@@ -23,7 +23,7 @@ jobs:
     - name: Install targeting pack
       shell: cmd
       working-directory: public
-      run: NDP451-KB2861696-x86-x64-DevPack.exe /q
+      run: net451-developer-pack-offline-installer /q
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
