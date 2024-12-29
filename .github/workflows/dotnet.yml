@@ -9,14 +9,21 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+    - name: Download 461 targeting pack
+      uses: suisei-cn/actions-download-file@818d6b7dc8fe73f2f924b6241f2b1134ca1377d9 # 1.6.0
+      id: downloadfile  # Remember to give an ID if you need the output filename
       with:
-        dotnet-version: 4.5.1
+          url: "https://dotnet.microsoft.com/zh-tw/download/dotnet-framework/thank-you/net451-developer-pack-offline-installer"
+          target: public/
+
+    - name: Install targeting pack
+      shell: cmd
+      working-directory: public
+      run: NDP451-KB2861696-x86-x64-DevPack.exe /q
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
